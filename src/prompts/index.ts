@@ -1,4 +1,4 @@
-export { buildHotspotPrompt } from "./hotspot";
+export { buildHotspotAnalysisPrompt } from "./hotspot";
 export { buildInspirationPrompt, type InspirationInput } from "./inspiration";
 export { buildTopicPrompt } from "./topic";
 export { buildOutlinePrompt } from "./outline";
