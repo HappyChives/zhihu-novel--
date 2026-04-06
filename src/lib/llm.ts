@@ -1,7 +1,7 @@
 /**
  * 统一 LLM 连接器
- * 支持：Ollama / LM Studio / LocalAI / OpenAI / Anthropic / Google /
- *       智谱GLM / DeepSeek / Moonshot(Kimi) / 百度文心 / 阿里通义 / SiliconFlow / MiniMax
+ * 支持：OpenAI / Anthropic / Google Gemini / 智谱GLM / DeepSeek /
+ *       Moonshot(Kimi) / MiniMax / 百度文心 / 阿里通义 / SiliconFlow / 自定义
  */
 
 import type { LLMConfig, Provider } from "./types";
@@ -15,7 +15,7 @@ export interface ProviderMeta {
   defaultBaseUrl: string;
   defaultModel: string;
   authIn: "bearer" | "x-api-key" | "query" | "none";
-  streamFormat: "sse" | "丁香" | "anthropic" | "text";
+  streamFormat: "sse" | "ollama" | "anthropic" | "text";
 }
 
 export const PROVIDER_META: Record<Provider, ProviderMeta> = {
@@ -71,7 +71,7 @@ export const PROVIDER_META: Record<Provider, ProviderMeta> = {
     label: "MiniMax",
     labelZh: "MiniMax 海螺",
     defaultBaseUrl: "https://api.minimax.chat/v1",
-    defaultModel: "m2.7",
+    defaultModel: "abab6.5s-chat",
     authIn: "bearer",
     streamFormat: "sse",
   },
@@ -349,7 +349,7 @@ export async function* streamLLM(
       case "sse":
         yield* parseSSStream(reader, decoder);
         break;
-      case "丁香":
+      case "ollama":
         yield* parseOllamaStream(reader, decoder);
         break;
       case "anthropic":

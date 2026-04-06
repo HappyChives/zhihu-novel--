@@ -52,6 +52,7 @@ export interface ChapterOutlineItem {
 }
 
 export interface ChapterOutline {
+  // 固定10章，盐选标准短篇篇幅（总字数8500-10000）
   totalChapters: 10;
   totalWords: number;
   chapters: ChapterOutlineItem[];
