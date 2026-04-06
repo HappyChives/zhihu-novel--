@@ -24,9 +24,9 @@ export function CoverMaterials() {
         <div className="card border-yellow-500/30 bg-yellow-500/5">
           <div className="text-center py-8">
             <p className="text-3xl mb-4">🔒</p>
-            <h3 className="text-xl font-bold text-white mb-2">付费功能解锁</h3>
-            <p className="text-gray-400 mb-6">封面物料功能需要激活 License Key</p>
-            <a href="/settings" className="btn-primary">去设置页面激活</a>
+            <h3 className="text-xl font-bold text-white mb-2">API 未配置</h3>
+            <p className="text-gray-400 mb-6">请先在设置页面配置 API，配置完成后即可使用封面物料功能</p>
+            <a href="/settings" className="btn-primary">去设置页面配置 API</a>
           </div>
         </div>
       </div>
