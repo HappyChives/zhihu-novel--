@@ -59,7 +59,14 @@ export function WritingAssist() {
 
   const handleWriting = async () => {
     if (!outline.trim()) return;
-    const { system, user } = buildWritingPrompt({ outline, currentContent, wordCount, style });
+    const { system, user } = buildWritingPrompt({
+      chapterNum: 1,
+      sectionTitle: "自由创作",
+      sectionContent: outline,
+      previousContent: currentContent || undefined,
+      wordTarget: wordCount,
+      mood: style,
+    });
     setWritingResult("");
     setWritingDisplay("");
     try {

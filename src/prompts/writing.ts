@@ -1,47 +1,62 @@
 /**
- * AI 续写初稿提示词
- * 基于大纲和上下文，生成盐选风格的短篇初稿
+ * 构建正文续写 Prompt
+ * 输入：章节细纲当前小节 + 已写内容 + 上下文
+ * 输出：符合盐选风格的正文（按目标字数续写）
  */
+export function buildWritingPrompt(params: {
+  chapterNum: number;
+  sectionTitle: string;
+  sectionContent: string;  // 小节要点描述
+  previousContent?: string;  // 已写内容（用于续写）
+  context?: string;  // 上文1000字
+  wordTarget: number;  // 本小节目标字数
+  mood: string;  // 情绪基调
+  characters?: Array<{ name: string; keyTrait: string; coreDesire: string; coreFear: string }>;
+}): { system: string; user: string } {
 
-export interface WritingInput {
-  outline: string;
-  currentContent?: string;
-  wordCount?: number;
-  style?: "虐" | "甜" | "爽" | "悬疑" | "搞笑";
-}
+  const { chapterNum, sectionTitle, sectionContent, previousContent, context, wordTarget, mood, characters } = params;
 
-export function buildWritingPrompt(input: WritingInput): { system: string; user: string } {
-  const wordTarget = input.wordCount ? `约 ${input.wordCount} 字` : "8000-15000 字";
-  const stylePart = input.style ? `情绪风格：**${input.style}**（请在写作中强化这一情绪）` : "";
+  const system = `你是一位专注于知乎盐选短篇的写作高手。
 
-  return {
-    system: `你是一位专注于知乎盐选短篇的高产作家，你写的故事有以下特点：
-1. **知乎盐选体**：段落短（2-4句一段）、节奏快、冲突前置、反转有力
-2. **情绪强烈**：开篇即抓人，让读者想继续读下去
-3. **短句节奏**：大量使用短句，减少冗长描写，增加阅读流畅感
-4. **画面感强**：用具体的动作、对话、神态代替叙述
-5. **反转设计**：在关键情节点设置反转，给读者惊喜
+你的任务是：根据给定的章节细纲，续写正文。
 
-写作要求：
-- 不要写景，不要写内心独白，直接写动作和对话
-- 每段不超过50字
-- 开头第一句就要有钩子，吸引读者继续读
-- 禁止水文，每句话都要推进情节
+知乎盐选写作规范：
+- 节奏极快，冲突要密集，不废话
+- 开头300字必须强冲突或强悬念
+- 冷笔触：克制、客观、不煽情。用动作代替情绪表达。
+- 对话要自然，不要说"某某说道"
+- 断读点：章末留钩子，让人想继续读
+- 字数精确：严格控制在 ${wordTarget - 50} 到 ${wordTarget + 50} 字之间，不多不少
 
-${stylePart}`,
-    user: `请根据以下大纲，续写/生成一段 ${wordTarget} 的短篇初稿。
+写作风格：
+- 用"她说"而不是"她说道"
+- 用动作/表情/沉默代替情绪说明
+- 短句和长句交替使用，制造节奏感
+- 避免"非常""很""特别"等程度副词`;
 
-如果提供了已有内容，请在此基础上续写，保持风格和情节连贯。
-如果没有已有内容，请从大纲开头开始写。
+  const userParts: string[] = [];
 
----
-## 大纲
+  userParts.push(`【章节信息】
+第${chapterNum}章 / ${sectionTitle}
+小节内容要点：${sectionContent}`);
 
-${input.outline}
----
+  if (characters && characters.length > 0) {
+    userParts.push(`\n【主要人物】
+${characters.map((c) => `· ${c.name}：${c.keyTrait}（渴望：${c.coreDesire} / 恐惧：${c.coreFear}）`).join("\n")}`);
+  }
 
-${input.currentContent ? `## 已有内容（请在此基础上续写）\n${input.currentContent}` : ""}
+  userParts.push(`\n情绪基调：${mood}`);
+  userParts.push(`目标字数：${wordTarget}字（误差±50字）`);
 
-请直接输出小说正文，不需要任何前缀说明。`,
-  };
+  if (context) {
+    userParts.push(`\n【上文1000字（用于上下文衔接）】\n${context}`);
+  }
+
+  if (previousContent) {
+    userParts.push(`\n【已写内容（续写接上）】\n${previousContent}`);
+  }
+
+  userParts.push(`\n请续写正文，严格控制字数。`);
+
+  return { system, user: userParts.join("\n") };
 }
