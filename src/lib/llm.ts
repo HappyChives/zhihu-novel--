@@ -377,11 +377,10 @@ export async function completeLLM(
 }
 
 // ─────────────────────────────────────────
-// 连接测试
+// 连接测试（用真实对话请求验证，而非 /models 端点）
 // ─────────────────────────────────────────
 export async function testLLMConnection(cfg: LLMConfig): Promise<string> {
   const base = cfg.baseUrl.replace(/\/$/, "");
-  const meta = PROVIDER_META[cfg.provider];
   const headers = buildHeaders(cfg);
 
   try {
@@ -396,12 +395,31 @@ export async function testLLMConnection(cfg: LLMConfig): Promise<string> {
       return `连接成功！可用模型: ${models}`;
     }
 
-    // 通用 OpenAI-compatible 端点测试
-    const r = await fetch(`${base}/models`, { method: "GET", headers });
-    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-    const json = await r.json() as { data?: Array<{ id: string }> };
+    // 用实际的对话请求来测试（MiniMax 等大多数 provider 都支持）
+    const body: Record<string, unknown> = {
+      model: cfg.model,
+      messages: [
+        { role: "user", content: "你好，只回复 ok 即可" }
+      ],
+      max_tokens: 10,
+      stream: false,
+    };
+
+    const r = await fetch(`${base}/chat/completions`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    if (!r.ok) {
+      const text = await r.text().catch(() => "");
+      throw new Error(`${r.status} ${r.statusText}${text ? " - " + text.slice(0, 100) : ""}`);
+    }
+
+    const json = await r.json() as { data?: Array<{ id: string }>; choices?: Array<{ message?: { content?: string } }> };
     const models = json.data?.map((m) => m.id).join(", ") ?? "未知";
-    return `连接成功！可用模型: ${models.slice(0, 300)}`;
+    const reply = json.choices?.[0]?.message?.content ?? "";
+    return reply.trim() ? `连接成功！模型回复: ${reply.trim()}` : `连接成功！模型: ${cfg.model}`;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "未知错误";
     throw new Error(`连接失败: ${msg}`);
