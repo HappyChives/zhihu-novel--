@@ -1,5 +1,5 @@
 export { buildHotspotAnalysisPrompt } from "./hotspot";
-export { buildInspirationPrompt, type InspirationInput } from "./inspiration";
+export { buildInspirationPrompt } from "./inspiration";
 export { buildTopicPrompt } from "./topic";
 export { buildOutlinePrompt } from "./outline";
 export { buildWritingPrompt, type WritingInput } from "./writing";

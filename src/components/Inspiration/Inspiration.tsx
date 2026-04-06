@@ -1,46 +1,127 @@
 import { useState } from "react";
-import { useLLM } from "../../hooks/useLLM";
 import { useApp } from "../../lib/context";
 import { buildInspirationPrompt } from "../../prompts";
-import { MarkdownRenderer } from "../ui/MarkdownRenderer";
+import { InspirationCard } from "../ui/InspirationCard";
+import type { InspirationItem } from "../../lib/types";
 
 const MOOD_OPTIONS = ["虐", "甜", "爽", "悬疑", "搞笑", "治愈"];
-const GENRE_OPTIONS = ["现代言情", "古代言情", "悬疑推理", "玄幻奇幻", "都市职场", "校园", "不限"];
+const GENRE_OPTIONS = ["现代言情", "古代言情", "悬疑推理", "都市职场", "校园", "玄幻奇幻", "不限"];
 
 export function Inspiration() {
-  const [genre, setGenre] = useState("不限");
+  const { config, isApiConfigured, project, setInspirations, selectInspiration } = useApp();
+
+  const [genre, setGenre] = useState(project?.hotspotData ? "" : "不限");
   const [mood, setMood] = useState("爽");
   const [protagonistPrefs, setProtagonistPrefs] = useState("");
-  const [result, setResult] = useState("");
-  const [displayResult, setDisplayResult] = useState("");
-  const { config } = useApp();
-  const { call } = useLLM();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [inspirations, setLocalInspirations] = useState<InspirationItem[]>([]);
+  const [selectedId, setSelectedId] = useState<string | undefined>(
+    project?.selectedInspirationId
+  );
+  const [rawResult, setRawResult] = useState("");
 
   const handleGenerate = async () => {
+    if (!isApiConfigured) return;
     const { system, user } = buildInspirationPrompt({
-      genre: genre === "不限" ? undefined : genre,
+      hotspotData: project?.hotspotData,
+      genre: genre && genre !== "不限" ? genre : undefined,
       mood,
       protagonistPrefs: protagonistPrefs || undefined,
     });
-    setResult("");
-    setDisplayResult("");
+    setLoading(true);
+    setError(null);
+    setInspirations([]);
+    setLocalInspirations([]);
+    setSelectedId(undefined);
+
     try {
-      const full = await call(system, user);
-      setResult(full);
-      setDisplayResult(full);
-    } catch (e) {
-      setDisplayResult("生成失败：" + (e as Error).message);
+      let full = "";
+      for await (const chunk of (await import("../../lib/llm")).streamLLM(
+        config.llm, system, user
+      )) {
+        full += chunk;
+      }
+      setRawResult(full);
+
+      // Parse inspirations from result (simple markdown list parsing)
+      const parsed = parseInspirations(full);
+      setLocalInspirations(parsed);
+      setInspirations(parsed);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "未知错误");
+    } finally {
+      setLoading(false);
     }
   };
+
+  function parseInspirations(text: string): InspirationItem[] {
+    // Simple parsing: split by numbered list items or markdown headers
+    const items: InspirationItem[] = [];
+    const blocks = text.split(/(?:^|\n)(?=#+\s*|\d+[.)]\s*【)/m);
+
+    let idx = 0;
+    for (const block of blocks) {
+      const trimmed = block.trim();
+      if (!trimmed || trimmed.length < 20) continue;
+
+      // Extract title from first line
+      const lines = trimmed.split("\n");
+      const title = lines[0].replace(/^#+\s*/, "").replace(/^\d+[.)]\s*/, "").trim() || `灵感 ${idx + 1}`;
+
+      const content = lines.slice(1).join("\n");
+
+      items.push({
+        id: `insp-${Date.now()}-${idx}`,
+        title,
+        conflict: extractField(content, "核心冲突") || content.slice(0, 100),
+        characters: extractField(content, "人物") || extractField(content, "人物设定") || "",
+        worldSetting: extractField(content, "世界观") || extractField(content, "背景") || "",
+        mood: extractField(content, "情绪") || mood,
+        explosionPoint: extractField(content, "爆点") || "",
+        genre: extractField(content, "题材") || genre || "不限",
+      });
+      idx++;
+    }
+
+    return items.slice(0, 5);
+  }
+
+  function extractField(text: string, field: string): string {
+    const match = text.match(new RegExp(`【?${field}】?:?\\s*([^\\n【】]+)`, "i"));
+    return match ? match[1].trim() : "";
+  }
+
+  const handleSelect = (id: string) => {
+    setSelectedId(id);
+    selectInspiration(id);
+  };
+
+  const selectedInspiration = inspirations.find((i) => i.id === selectedId);
 
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white mb-1">💡 灵感生成</h2>
         <p className="text-gray-400 text-sm">
-          基于题材和情绪偏好，生成 5-10 个有爆款潜力的故事灵感
+          基于热点分析，生成 3-5 个有爆款潜力的详细灵感碎片
         </p>
       </div>
+
+      {!isApiConfigured && (
+        <div className="card border-yellow-500/30 bg-yellow-500/5 mb-4">
+          <p className="text-yellow-400 text-center">
+            ⚠️ 请先在「设置」页面配置 API
+          </p>
+        </div>
+      )}
+
+      {project?.hotspotData && (
+        <div className="card mb-4 border-primary-500/20">
+          <p className="text-xs text-gray-500 mb-1">基于热点分析</p>
+          <p className="text-gray-300 text-sm line-clamp-2">{project?.hotspotData?.slice(0, 200)}...</p>
+        </div>
+      )}
 
       <div className="card mb-4 space-y-4">
         {/* 题材 */}
@@ -51,10 +132,8 @@ export function Inspiration() {
               <button
                 key={g}
                 onClick={() => setGenre(g)}
-                className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                  genre === g
-                    ? "bg-primary-600 text-white"
-                    : "bg-dark-card text-gray-400 hover:text-gray-200"
+                className={`px-3 py-1.5 rounded-full text-sm ${
+                  genre === g ? "bg-primary-600 text-white" : "bg-dark-card text-gray-400"
                 }`}
               >
                 {g}
@@ -71,10 +150,8 @@ export function Inspiration() {
               <button
                 key={m}
                 onClick={() => setMood(m)}
-                className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                  mood === m
-                    ? "bg-primary-600 text-white"
-                    : "bg-dark-card text-gray-400 hover:text-gray-200"
+                className={`px-3 py-1.5 rounded-full text-sm ${
+                  mood === m ? "bg-primary-600 text-white" : "bg-dark-card text-gray-400"
                 }`}
               >
                 {m}
@@ -88,29 +165,41 @@ export function Inspiration() {
           <p className="section-title">主角设定偏好（可选）</p>
           <input
             className="input-field"
-            placeholder="例如：女主是医生，男主是消防员，两人曾有过节..."
+            placeholder="例如：女主是医生，男主是消防员..."
             value={protagonistPrefs}
             onChange={(e) => setProtagonistPrefs(e.target.value)}
           />
         </div>
 
-        <button className="btn-primary w-full" onClick={handleGenerate}>
-          生成灵感
+        <button
+          className="btn-primary w-full"
+          onClick={handleGenerate}
+          disabled={loading || !isApiConfigured}
+        >
+          {loading ? "生成中..." : "生成灵感"}
         </button>
+
+        {error && <p className="text-red-400 text-sm">{error}</p>}
       </div>
 
-      {displayResult && (
+      {inspirations.length > 0 && (
+        <div className="space-y-3">
+          <p className="section-title">生成的灵感（点击选用）</p>
+          {inspirations.map((item) => (
+            <InspirationCard
+              key={item.id}
+              item={item}
+              isSelected={item.id === selectedId}
+              onSelect={handleSelect}
+            />
+          ))}
+        </div>
+      )}
+
+      {rawResult && inspirations.length === 0 && !loading && (
         <div className="card">
-          <div className="flex items-center justify-between mb-3">
-            <p className="section-title mb-0">灵感列表</p>
-            <button
-              className="btn-secondary text-xs"
-              onClick={() => navigator.clipboard.writeText(result)}
-            >
-              复制全部
-            </button>
-          </div>
-          <MarkdownRenderer content={displayResult} />
+          <p className="section-title">生成结果（解析失败，请复制使用）</p>
+          <pre className="whitespace-pre-wrap text-sm text-gray-300">{rawResult}</pre>
         </div>
       )}
     </div>
