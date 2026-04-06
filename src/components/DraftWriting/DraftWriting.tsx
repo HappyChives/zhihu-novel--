@@ -15,7 +15,7 @@ const POLISH_INTENTS: { value: PolishIntent; label: string }[] = [
 ];
 
 export function DraftWriting() {
-  const { config, isApiConfigured, project, setWritingProgress } = useApp();
+  const { config, project, setWritingProgress } = useApp();
 
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [content, setContent] = useState("");
@@ -57,7 +57,6 @@ export function DraftWriting() {
   const targetWords = 9000;
 
   const handleAIGenerate = async () => {
-    if (!isApiConfigured) return;
     setLoading(true);
     setError(null);
 
@@ -93,7 +92,7 @@ export function DraftWriting() {
   };
 
   const handlePolish = async (intent: PolishIntent) => {
-    if (!isApiConfigured || !content.trim()) return;
+    if (!content.trim()) return;
     setPolishing(true);
     setError(null);
 
@@ -114,7 +113,7 @@ export function DraftWriting() {
   };
 
   const handleCheck = async () => {
-    if (!isApiConfigured || !content.trim()) return;
+    if (!content.trim()) return;
     setChecking(true);
     setChecks([]);
 
@@ -209,12 +208,6 @@ export function DraftWriting() {
         </div>
       </div>
 
-      {!isApiConfigured && (
-        <div className="card border-yellow-500/30 bg-yellow-500/5 mb-4">
-          <p className="text-yellow-400 text-center">⚠️ 请先在「设置」页面配置 API</p>
-        </div>
-      )}
-
       <div className="flex gap-4 h-[calc(100vh-200px)]">
         {/* 章节列表 */}
         <div className="w-32 flex-shrink-0">
@@ -264,7 +257,7 @@ export function DraftWriting() {
             <button
               className="btn-primary"
               onClick={handleAIGenerate}
-              disabled={loading || !isApiConfigured}
+              disabled={loading}
             >
               {loading ? "生成中..." : "✨ AI 续写"}
             </button>
@@ -278,7 +271,7 @@ export function DraftWriting() {
             <div className="relative group">
               <button
                 className="btn-secondary"
-                disabled={polishing || !isApiConfigured || !content.trim()}
+                disabled={polishing || !content.trim()}
               >
                 {polishing ? "润色中..." : "🛠 润色"}
               </button>
@@ -297,7 +290,7 @@ export function DraftWriting() {
             <button
               className="btn-secondary"
               onClick={handleCheck}
-              disabled={checking || !isApiConfigured || !content.trim()}
+              disabled={checking || !content.trim()}
             >
               {checking ? "检查中..." : "🔍 实时检查"}
             </button>

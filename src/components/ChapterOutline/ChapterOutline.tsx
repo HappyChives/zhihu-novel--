@@ -4,7 +4,7 @@ import { buildChapterOutlinePrompt } from "../../prompts";
 import { MarkdownRenderer } from "../ui/MarkdownRenderer";
 
 export function ChapterOutline() {
-  const { config, isApiConfigured, project, setChapterOutline } = useApp();
+  const { config, project, setChapterOutline } = useApp();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export function ChapterOutline() {
     );
   }
 
-  const canGenerate = isApiConfigured && project.outline && project.characters?.length;
+  const canGenerate = !!(project.outline && project.characters?.length);
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
@@ -96,12 +96,6 @@ export function ChapterOutline() {
           将故事大纲展开为 10 章章节细纲，每章 3-5 小节，总字数 8500-10000
         </p>
       </div>
-
-      {!isApiConfigured && (
-        <div className="card border-yellow-500/30 bg-yellow-500/5 mb-4">
-          <p className="text-yellow-400 text-center">⚠️ 请先在「设置」页面配置 API</p>
-        </div>
-      )}
 
       <div className="card mb-4">
         <p className="section-title">字数目标</p>

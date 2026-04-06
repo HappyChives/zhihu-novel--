@@ -24,7 +24,7 @@ function emptyCharacter(): Character {
 }
 
 export function CharacterDesign() {
-  const { config, isApiConfigured, project, setCharacters } = useApp();
+  const { config, project, setCharacters } = useApp();
 
   // Guard: no project loaded yet
   if (!project) {
@@ -52,7 +52,7 @@ export function CharacterDesign() {
     (i) => i.id === project.selectedInspirationId
   );
 
-  const canGenerate = isApiConfigured && selectedInspiration && project.worldSetting;
+  const canGenerate = !!(selectedInspiration && project.worldSetting);
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
@@ -166,12 +166,6 @@ export function CharacterDesign() {
           基于故事大纲，设计 3-5 个主要人物（六要素：渴望/恐惧/根冲突/背景/标志细节/弧光）
         </p>
       </div>
-
-      {!isApiConfigured && (
-        <div className="card border-yellow-500/30 bg-yellow-500/5 mb-4">
-          <p className="text-yellow-400 text-center">⚠️ 请先在「设置」页面配置 API</p>
-        </div>
-      )}
 
       {canGenerate && characters.length === 0 && !displayResult && (
         <button className="btn-primary w-full mb-4" onClick={handleGenerate} disabled={loading}>

@@ -4,7 +4,7 @@ import { buildOutlinePrompt } from "../../prompts";
 import { MarkdownRenderer } from "../ui/MarkdownRenderer";
 
 export function OutlineGen() {
-  const { config, isApiConfigured, project, setOutline } = useApp();
+  const { config, project, setOutline } = useApp();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export function OutlineGen() {
     (i) => i.id === project.selectedInspirationId
   );
 
-  const canGenerate = isApiConfigured && selectedInspiration && project.worldSetting;
+  const canGenerate = !!(selectedInspiration && project.worldSetting);
 
   const handleGenerate = async () => {
     if (!canGenerate || !selectedInspiration) return;
@@ -118,12 +118,6 @@ export function OutlineGen() {
           基于灵感和世界观，生成完整的四幕结构大纲（10章，8500-10000字）
         </p>
       </div>
-
-      {!isApiConfigured && (
-        <div className="card border-yellow-500/30 bg-yellow-500/5 mb-4">
-          <p className="text-yellow-400 text-center">⚠️ 请先在「设置」页面配置 API</p>
-        </div>
-      )}
 
       <div className="card mb-4 border-primary-500/20">
         <p className="text-xs text-gray-500 mb-1">选定灵感</p>

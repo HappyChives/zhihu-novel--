@@ -5,7 +5,7 @@ import { MarkdownRenderer } from "../ui/MarkdownRenderer";
 import { useNavigate } from "react-router-dom";
 
 export function HotspotAnalysis() {
-  const { config, isApiConfigured, project, setHotspotData, setInspirations, advanceStage } = useApp();
+  const { config, project, setHotspotData, setInspirations, advanceStage } = useApp();
   const navigate = useNavigate();
 
   const [genre, setGenre] = useState("");
@@ -17,7 +17,6 @@ export function HotspotAnalysis() {
   const genres = ["不限", "现代言情", "古代言情", "悬疑推理", "都市职场", "校园", "玄幻奇幻"];
 
   const handleAnalyze = async () => {
-    if (!isApiConfigured) return;
     const { system, user } = buildHotspotAnalysisPrompt({
       genre: genre && genre !== "不限" ? genre : undefined,
     });
@@ -57,14 +56,6 @@ export function HotspotAnalysis() {
         </p>
       </div>
 
-      {!isApiConfigured && (
-        <div className="card border-yellow-500/30 bg-yellow-500/5 mb-4">
-          <p className="text-yellow-400 text-center">
-            ⚠️ 请先在「设置」页面配置 API，完成后返回此页面
-          </p>
-        </div>
-      )}
-
       <div className="card mb-4">
         <p className="section-title">题材方向（可选）</p>
         <p className="text-xs text-gray-500 mb-3">指定题材方向，分析结果将更加针对性</p>
@@ -86,7 +77,7 @@ export function HotspotAnalysis() {
         <button
           className="btn-primary w-full"
           onClick={handleAnalyze}
-          disabled={loading || !isApiConfigured}
+          disabled={loading}
         >
           {loading ? "分析中..." : "开始热点分析"}
         </button>

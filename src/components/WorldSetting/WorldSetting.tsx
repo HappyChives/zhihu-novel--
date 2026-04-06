@@ -4,7 +4,7 @@ import { buildWorldSettingPrompt } from "../../prompts";
 import { MarkdownRenderer } from "../ui/MarkdownRenderer";
 
 export function WorldSetting() {
-  const { config, isApiConfigured, project, setWorldSetting } = useApp();
+  const { config, project, setWorldSetting } = useApp();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export function WorldSetting() {
     (i) => i.id === project?.selectedInspirationId
   );
 
-  const canGenerate = isApiConfigured && selectedInspiration;
+  const canGenerate = !!selectedInspiration;
 
   const handleGenerate = async () => {
     if (!canGenerate || !selectedInspiration) return;
@@ -105,12 +105,6 @@ export function WorldSetting() {
           基于选定灵感，设计故事的「底座-社会结构-文明」三层世界观
         </p>
       </div>
-
-      {!isApiConfigured && (
-        <div className="card border-yellow-500/30 bg-yellow-500/5 mb-4">
-          <p className="text-yellow-400 text-center">⚠️ 请先在「设置」页面配置 API</p>
-        </div>
-      )}
 
       {selectedInspiration && (
         <div className="card mb-4 border-primary-500/20">

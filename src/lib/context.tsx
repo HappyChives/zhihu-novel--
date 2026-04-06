@@ -232,7 +232,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, [saveProject]);
 
-  const isApiConfigured = config.llm.model !== "" && config.llm.apiKey !== "";
+  const isApiConfigured = true; // 所有功能永久开放，无需锁定
 
   return (
     <AppContext.Provider

@@ -15,7 +15,7 @@ const POLISH_INTENTS: { value: PolishIntent; label: string }[] = [
 ];
 
 export function WritingAssist() {
-  const { config, isApiConfigured } = useApp();
+  const { config } = useApp();
   const { call } = useLLM();
 
   // 续写模式
@@ -33,29 +33,6 @@ export function WritingAssist() {
   const [polishDisplay, setPolishDisplay] = useState("");
 
   const [mode, setMode] = useState<"writing" | "polish">("writing");
-
-  // License 拦截
-  if (!isApiConfigured) {
-    return (
-      <div className="max-w-4xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-1">⚡ AI 写作助手</h2>
-        </div>
-        <div className="card border-yellow-500/30 bg-yellow-500/5">
-          <div className="text-center py-8">
-            <p className="text-3xl mb-4">🔒</p>
-            <h3 className="text-xl font-bold text-white mb-2">付费功能解锁</h3>
-            <p className="text-gray-400 mb-6">
-              AI 续写和润色功能需要激活 License Key
-            </p>
-            <a href="/settings" className="btn-primary">
-              去设置页面激活
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const handleWriting = async () => {
     if (!outline.trim()) return;

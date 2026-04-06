@@ -4,7 +4,7 @@ import { useApp } from "../../lib/context";
 import { buildCoverPrompt } from "../../prompts";
 
 export function CoverMaterials() {
-  const { config, isApiConfigured } = useApp();
+  const { config } = useApp();
   const { call } = useLLM();
 
   const [topic, setTopic] = useState("");
@@ -14,24 +14,6 @@ export function CoverMaterials() {
   const [outline, setOutline] = useState("");
   const [result, setResult] = useState("");
   const [displayResult, setDisplayResult] = useState("");
-
-  if (!isApiConfigured) {
-    return (
-      <div className="max-w-4xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-1">🎨 封面物料全套</h2>
-        </div>
-        <div className="card border-yellow-500/30 bg-yellow-500/5">
-          <div className="text-center py-8">
-            <p className="text-3xl mb-4">🔒</p>
-            <h3 className="text-xl font-bold text-white mb-2">API 未配置</h3>
-            <p className="text-gray-400 mb-6">请先在设置页面配置 API，配置完成后即可使用封面物料功能</p>
-            <a href="/settings" className="btn-primary">去设置页面配置 API</a>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const handleGenerate = async () => {
     if (!topic.trim() && !coreConflict.trim() && !outline.trim()) return;

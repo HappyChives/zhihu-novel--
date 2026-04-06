@@ -56,18 +56,12 @@ const STATUS_ICON: Record<StageStatus, string> = {
 };
 
 export function Sidebar() {
-  const { project, isApiConfigured } = useApp();
+  const { project } = useApp();
   const currentStage = project?.stage;
   const projectName = project?.name || "新项目";
 
   return (
     <aside className="w-56 bg-dark-surface border-r border-dark-border flex flex-col">
-      {/* API 未配置警告 */}
-      {!isApiConfigured && (
-        <div className="mx-3 mt-3 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-          <p className="text-xs text-yellow-400">⚠️ 请先配置 API</p>
-        </div>
-      )}
       {/* Logo / Project info */}
       <div className="px-5 py-5 border-b border-dark-border">
         <h1 className="text-xl font-bold text-white">

@@ -8,7 +8,7 @@ const MOOD_OPTIONS = ["虐", "甜", "爽", "悬疑", "搞笑", "治愈"];
 const GENRE_OPTIONS = ["现代言情", "古代言情", "悬疑推理", "都市职场", "校园", "玄幻奇幻", "不限"];
 
 export function Inspiration() {
-  const { config, isApiConfigured, project, setInspirations, selectInspiration } = useApp();
+  const { config, project, setInspirations, selectInspiration } = useApp();
 
   const [genre, setGenre] = useState(project?.hotspotData ? "" : "不限");
   const [mood, setMood] = useState("爽");
@@ -22,7 +22,6 @@ export function Inspiration() {
   const [rawResult, setRawResult] = useState("");
 
   const handleGenerate = async () => {
-    if (!isApiConfigured) return;
     const { system, user } = buildInspirationPrompt({
       hotspotData: project?.hotspotData,
       genre: genre && genre !== "不限" ? genre : undefined,
@@ -108,14 +107,6 @@ export function Inspiration() {
         </p>
       </div>
 
-      {!isApiConfigured && (
-        <div className="card border-yellow-500/30 bg-yellow-500/5 mb-4">
-          <p className="text-yellow-400 text-center">
-            ⚠️ 请先在「设置」页面配置 API
-          </p>
-        </div>
-      )}
-
       {project?.hotspotData && (
         <div className="card mb-4 border-primary-500/20">
           <p className="text-xs text-gray-500 mb-1">基于热点分析</p>
@@ -174,7 +165,7 @@ export function Inspiration() {
         <button
           className="btn-primary w-full"
           onClick={handleGenerate}
-          disabled={loading || !isApiConfigured}
+          disabled={loading}
         >
           {loading ? "生成中..." : "生成灵感"}
         </button>
