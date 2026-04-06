@@ -71,7 +71,7 @@ export const PROVIDER_META: Record<Provider, ProviderMeta> = {
     label: "MiniMax",
     labelZh: "MiniMax 海螺",
     defaultBaseUrl: "https://api.minimax.chat/v1",
-    defaultModel: "abab6.5s-chat",
+    defaultModel: "MiniMax-M2.7",
     authIn: "bearer",
     streamFormat: "sse",
   },

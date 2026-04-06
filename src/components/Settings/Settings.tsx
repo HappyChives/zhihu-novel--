@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "../../lib/context";
 import { testLLMConnection, PROVIDER_META } from "../../lib/llm";
 import type { Provider } from "../../lib/types";
@@ -39,6 +39,14 @@ export function Settings() {
   const [apiKey, setApiKey] = useState(config.llm.apiKey || "");
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "fail">("idle");
   const [testMsg, setTestMsg] = useState("");
+
+  // 当 localStorage 中的配置更新时，同步表单状态（如页面刷新后恢复配置）
+  useEffect(() => {
+    setProvider(config.llm.provider);
+    setBaseUrl(config.llm.baseUrl || PROVIDER_META[config.llm.provider]?.defaultBaseUrl || "");
+    setModel(config.llm.model || PROVIDER_META[config.llm.provider]?.defaultModel || "");
+    setApiKey(config.llm.apiKey || "");
+  }, [config.llm]);
 
   const handleProviderChange = (p: Provider) => {
     setProvider(p);
