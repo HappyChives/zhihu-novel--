@@ -41,8 +41,9 @@ function stageIndex(s: WorkflowStage): number {
 type StageStatus = "locked" | "current" | "completed";
 
 function getStageStatus(stage: WorkflowStage, currentStage: WorkflowStage | undefined): StageStatus {
-  if (!currentStage) return "locked";
-  const currentIdx = stageIndex(currentStage);
+  // 默认从第一个阶段开始，全部解锁
+  const effectiveStage = currentStage ?? "hotspot";
+  const currentIdx = stageIndex(effectiveStage);
   const stageIdx = stageIndex(stage);
   if (stageIdx < currentIdx) return "completed";
   if (stageIdx === currentIdx) return "current";
