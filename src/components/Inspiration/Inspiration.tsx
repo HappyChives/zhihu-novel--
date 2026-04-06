@@ -24,6 +24,7 @@ export function Inspiration() {
   const [rawResult, setRawResult] = useState(project?.rawInspirations || "");
 
   // 组件挂载时同步 project 中的数据（切换页面后恢复）
+  // 依赖 project?.inspirations 以确保生成新灵感后也能同步
   useEffect(() => {
     if (project?.inspirations?.length) {
       setLocalInspirations(project.inspirations);
@@ -34,7 +35,7 @@ export function Inspiration() {
     if (project?.rawInspirations) {
       setRawResult(project.rawInspirations);
     }
-  }, [project?.id]);
+  }, [project?.id, project?.inspirations]);
 
   const handleGenerate = async () => {
     const { system, user } = buildInspirationPrompt({
