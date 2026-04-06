@@ -74,29 +74,60 @@ export function Inspiration() {
   };
 
   function parseInspirations(text: string): InspirationItem[] {
-    // Simple parsing: split by numbered list items or markdown headers
+    // Robust parsing: split by markdown headers OR numbered list lines
+    // Handles formats like:
+    //   ## 灵感一 / #1 / 1. 标题
+    //   1、【标题】 / 1、标题
     const items: InspirationItem[] = [];
-    const blocks = text.split(/(?:^|\n)(?=#+\s*|\d+[.)]\s*【)/m);
+
+    // Primary split: each line starting with ## or # or numbered pattern
+    const lines = text.split("\n");
+    const blocks: string[] = [];
+    let currentBlock: string[] = [];
+
+    for (const line of lines) {
+      // Detect new inspiration block by header or numbered item
+      const isNewBlock =
+        /^(#{1,3}\s+)/.test(line) ||                          // ## 标题 / ### 标题
+        /^\d+[.、)]\s*\S/.test(line) ||                        // 1. 标题 / 1、标题 / 1) 标题
+        /^(#{1,3}\s+)?【/.test(line);                         // 【核心冲突】standalone (no title line)
+
+      if (isNewBlock && currentBlock.length > 0) {
+        blocks.push(currentBlock.join("\n"));
+        currentBlock = [];
+      }
+      currentBlock.push(line);
+    }
+    if (currentBlock.length > 0) {
+      blocks.push(currentBlock.join("\n"));
+    }
 
     let idx = 0;
     for (const block of blocks) {
       const trimmed = block.trim();
-      if (!trimmed || trimmed.length < 20) continue;
+      if (!trimmed || trimmed.length < 30) continue;
 
-      // Extract title from first line
-      const lines = trimmed.split("\n");
-      const title = lines[0].replace(/^#+\s*/, "").replace(/^\d+[.)]\s*/, "").trim() || `灵感 ${idx + 1}`;
+      const lines2 = trimmed.split("\n");
+      // Extract title: first non-empty line after stripping markdown markers
+      let title = lines2.find((l) => l.trim()) || `灵感 ${idx + 1}`;
+      title = title
+        .replace(/^#{1,3}\s*/, "")
+        .replace(/^\d+[.、)]\s*/, "")
+        .replace(/^【[^】]*】\s*/, "")
+        .replace(/\s*[-–—]\s*.*$/, "") // strip after dash
+        .trim();
+      if (!title) title = `灵感 ${idx + 1}`;
 
-      const content = lines.slice(1).join("\n");
+      const content = lines2.slice(1).join("\n");
 
       items.push({
         id: `insp-${Date.now()}-${idx}`,
         title,
-        conflict: extractField(content, "核心冲突") || content.slice(0, 100),
+        conflict: extractField(content, "核心冲突") || extractField(content, "核心矛盾") || content.slice(0, 100),
         characters: extractField(content, "人物") || extractField(content, "人物设定") || "",
         worldSetting: extractField(content, "世界观") || extractField(content, "背景") || "",
         mood: extractField(content, "情绪") || mood,
-        explosionPoint: extractField(content, "爆点") || "",
+        explosionPoint: extractField(content, "爆点") || extractField(content, "爆款理由") || "",
         genre: extractField(content, "题材") || genre || "不限",
       });
       idx++;
