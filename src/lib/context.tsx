@@ -70,6 +70,17 @@ function loadProject(): Project | null {
   }
 }
 
+function ensureProject(prev: Project | null): Project {
+  if (prev) return prev;
+  return {
+    id: crypto.randomUUID(),
+    name: "我的故事",
+    createdAt: new Date().toISOString(),
+    stage: "hotspot",
+    inspirations: [],
+  };
+}
+
 function loadConfig(): AppConfig {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
@@ -134,8 +145,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const goToStage = useCallback((s: WorkflowStage) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, stage: s };
+      const current = ensureProject(prev);
+      const updated = { ...current, stage: s };
       saveProject(updated);
       return updated;
     });
@@ -143,8 +154,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setHotspotData = useCallback((data: string) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, hotspotData: data };
+      const current = ensureProject(prev);
+      const updated = { ...current, hotspotData: data };
       saveProject(updated);
       return updated;
     });
@@ -152,8 +163,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setInspirations = useCallback((items: InspirationItem[]) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, inspirations: items };
+      const current = ensureProject(prev);
+      const updated = { ...current, inspirations: items };
       saveProject(updated);
       return updated;
     });
@@ -161,10 +172,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const selectInspiration = useCallback((id: string) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const idx = stageIndex(prev.stage);
+      const current = ensureProject(prev);
+      const idx = stageIndex(current.stage);
       const nextStage = STAGE_ORDER[idx + 1] ?? "worldSetting";
-      const updated = { ...prev, selectedInspirationId: id, stage: nextStage };
+      const updated = { ...current, selectedInspirationId: id, stage: nextStage };
       saveProject(updated);
       return updated;
     });
@@ -172,10 +183,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setWorldSetting = useCallback((ws: WorldSetting) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const idx = stageIndex(prev.stage);
+      const current = ensureProject(prev);
+      const idx = stageIndex(current.stage);
       const nextStage = STAGE_ORDER[idx + 1] ?? "outline";
-      const updated = { ...prev, worldSetting: ws, stage: nextStage };
+      const updated = { ...current, worldSetting: ws, stage: nextStage };
       saveProject(updated);
       return updated;
     });
@@ -183,10 +194,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setOutline = useCallback((o: OutlineData) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const idx = stageIndex(prev.stage);
+      const current = ensureProject(prev);
+      const idx = stageIndex(current.stage);
       const nextStage = STAGE_ORDER[idx + 1] ?? "character";
-      const updated = { ...prev, outline: o, stage: nextStage };
+      const updated = { ...current, outline: o, stage: nextStage };
       saveProject(updated);
       return updated;
     });
@@ -194,10 +205,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setCharacters = useCallback((chars: Character[]) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const idx = stageIndex(prev.stage);
+      const current = ensureProject(prev);
+      const idx = stageIndex(current.stage);
       const nextStage = STAGE_ORDER[idx + 1] ?? "chapterOutline";
-      const updated = { ...prev, characters: chars, stage: nextStage };
+      const updated = { ...current, characters: chars, stage: nextStage };
       saveProject(updated);
       return updated;
     });
@@ -205,10 +216,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setChapterOutline = useCallback((co: ChapterOutline) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const idx = stageIndex(prev.stage);
+      const current = ensureProject(prev);
+      const idx = stageIndex(current.stage);
       const nextStage = STAGE_ORDER[idx + 1] ?? "writing";
-      const updated = { ...prev, chapterOutline: co, stage: nextStage };
+      const updated = { ...current, chapterOutline: co, stage: nextStage };
       saveProject(updated);
       return updated;
     });
@@ -216,8 +227,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setWritingProgress = useCallback((wp: WritingProgress) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, writingProgress: wp };
+      const current = ensureProject(prev);
+      const updated = { ...current, writingProgress: wp };
       saveProject(updated);
       return updated;
     });
@@ -225,8 +236,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setCoverMaterials = useCallback((cm: CoverMaterialData) => {
     setProject((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, coverMaterials: cm };
+      const current = ensureProject(prev);
+      const updated = { ...current, coverMaterials: cm };
       saveProject(updated);
       return updated;
     });
