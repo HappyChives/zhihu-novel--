@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "../../lib/context";
 import { buildOutlinePrompt } from "../../prompts";
 import { MarkdownRenderer } from "../ui/MarkdownRenderer";
@@ -12,24 +12,20 @@ export function OutlineGen() {
   const [rawResult, setRawResult] = useState("");
   const [saved, setSaved] = useState(!!project?.outline);
 
-  if (!project) {
-    return (
-      <div className="max-w-4xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-1">🗺️ 故事大纲</h2>
-        </div>
-        <div className="card border-yellow-500/30 bg-yellow-500/5">
-          <p className="text-yellow-400 text-center">请先创建或加载项目</p>
-        </div>
-      </div>
-    );
-  }
+  // 挂载时恢复已有数据
+  useEffect(() => {
+    if (project?.outline) {
+      setRawResult(project.outline.mainLine);
+      setDisplayResult(project.outline.mainLine);
+      setSaved(true);
+    }
+  }, [project?.id]);
 
-  const selectedInspiration = project.inspirations.find(
-    (i) => i.id === project.selectedInspirationId
+  const selectedInspiration = project?.inspirations?.find(
+    (i) => i.id === project?.selectedInspirationId
   );
 
-  const canGenerate = !!(selectedInspiration && project.worldSetting);
+  const canGenerate = !!(selectedInspiration && project?.worldSetting);
 
   const handleGenerate = async () => {
     if (!canGenerate || !selectedInspiration) return;
@@ -58,8 +54,16 @@ export function OutlineGen() {
       )) {
         full += chunk;
         setDisplayResult(full);
+        // 实时保存中间结果
+        setOutline({
+          hook: full.slice(0, 300),
+          mainLine: full,
+          explosionPoints: [],
+          ending: "",
+          chapterWordAlloc: Array.from({ length: 10 }, () => 900),
+        });
       }
-      setRawResult(full);
+      setResult(full);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "未知错误");
     } finally {
@@ -95,7 +99,7 @@ export function OutlineGen() {
     );
   }
 
-  if (!project.worldSetting) {
+  if (!project?.worldSetting) {
     return (
       <div className="max-w-4xl">
         <div className="mb-6">

@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "../../lib/context";
 import { buildHotspotAnalysisPrompt } from "../../prompts";
 import { MarkdownRenderer } from "../ui/MarkdownRenderer";
 import { useNavigate } from "react-router-dom";
 
 export function HotspotAnalysis() {
-  const { config, project, setHotspotData, setInspirations, advanceStage } = useApp();
+  const { config, project, setHotspotData } = useApp();
   const navigate = useNavigate();
 
   const [genre, setGenre] = useState("");
@@ -15,6 +15,14 @@ export function HotspotAnalysis() {
   const [result, setResult] = useState("");
 
   const genres = ["不限", "现代言情", "古代言情", "悬疑推理", "都市职场", "校园", "玄幻奇幻"];
+
+  // 挂载时恢复已有数据
+  useEffect(() => {
+    if (project?.hotspotData) {
+      setResult(project.hotspotData);
+      setDisplayResult(project.hotspotData);
+    }
+  }, [project?.id]);
 
   const handleAnalyze = async () => {
     const { system, user } = buildHotspotAnalysisPrompt({
@@ -32,6 +40,8 @@ export function HotspotAnalysis() {
       )) {
         full += chunk;
         setDisplayResult(full);
+        // 实时保存中间结果，切换页面也不会丢
+        setHotspotData(full);
       }
       setResult(full);
       setHotspotData(full);
@@ -52,7 +62,7 @@ export function HotspotAnalysis() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white mb-1">📊 市场热点分析</h2>
         <p className="text-gray-400 text-sm">
-          AI 自动分析知乎盐选创作热点，涵盖题材、情绪、冲突、人设等多维度
+          AI 自动分析知乎盐选创作热点，涵盖题材、情绪、冲突，人设等多维度
         </p>
       </div>
 

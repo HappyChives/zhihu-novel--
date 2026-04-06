@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "../../lib/context";
 import { buildChapterOutlinePrompt } from "../../prompts";
 import { MarkdownRenderer } from "../ui/MarkdownRenderer";
@@ -12,34 +12,30 @@ export function ChapterOutline() {
   const [rawResult, setRawResult] = useState("");
   const [saved, setSaved] = useState(!!project?.chapterOutline);
 
-  if (!project) {
-    return (
-      <div className="max-w-4xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-1">📖 章节细纲</h2>
-        </div>
-        <div className="card border-yellow-500/30 bg-yellow-500/5">
-          <p className="text-yellow-400 text-center">请先创建或加载项目</p>
-        </div>
-      </div>
-    );
-  }
+  // 挂载时恢复已有数据
+  useEffect(() => {
+    if (project?.chapterOutline) {
+      setRawResult(project.chapterOutline.chapters.map(c => c.summary).join("\n"));
+      setDisplayResult(project.chapterOutline.chapters.map(c => c.summary).join("\n"));
+      setSaved(true);
+    }
+  }, [project?.id]);
 
-  const canGenerate = !!(project.outline && project.characters?.length);
+  const canGenerate = !!(project?.outline && project?.characters?.length);
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
 
     const { system, user } = buildChapterOutlinePrompt({
-      outline: project.outline?.mainLine || "",
-      characters: project.characters?.map((c) => ({
+      outline: project?.outline?.mainLine || "",
+      characters: project?.characters?.map((c) => ({
         name: c.name,
         role: c.role,
         coreDesire: c.coreDesire,
         coreFear: c.coreFear,
         rootConflict: c.rootConflict,
       })),
-      worldSetting: project.worldSetting?.baseRule,
+      worldSetting: project?.worldSetting?.baseRule,
       totalWords: 9000,
     });
 
@@ -55,8 +51,14 @@ export function ChapterOutline() {
       )) {
         full += chunk;
         setDisplayResult(full);
+        setRawResult(full);
+        // 实时保存中间结果
+        setChapterOutline({
+          totalChapters: 10 as const,
+          totalWords: full.length * 10,
+          chapters: [],
+        });
       }
-      setRawResult(full);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "未知错误");
     } finally {
@@ -67,13 +69,13 @@ export function ChapterOutline() {
   const handleConfirm = () => {
     setChapterOutline({
       totalChapters: 10 as const,
-      totalWords: rawResult.length * 10, // rough estimate
+      totalWords: rawResult.length * 10,
       chapters: [],
     });
     setSaved(true);
   };
 
-  if (!project.outline) {
+  if (!project?.outline) {
     return (
       <div className="max-w-4xl">
         <div className="mb-6">

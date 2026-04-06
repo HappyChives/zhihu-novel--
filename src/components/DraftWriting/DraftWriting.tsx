@@ -25,25 +25,11 @@ export function DraftWriting() {
   const [error, setError] = useState<string | null>(null);
   const [checks, setChecks] = useState<CheckResult[]>([]);
 
-  // Guard: no project loaded yet
-  if (!project) {
-    return (
-      <div className="max-w-4xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-1">✍️ 正文创作</h2>
-        </div>
-        <div className="card border-yellow-500/30 bg-yellow-500/5">
-          <p className="text-yellow-400 text-center">加载中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const selectedInspiration = project.inspirations.find(
-    (i) => i.id === project.selectedInspirationId
+  const selectedInspiration = project?.inspirations?.find(
+    (i) => i.id === project?.selectedInspirationId
   );
 
-  const chapters = project.writingProgress?.chapters || [];
+  const chapters = project?.writingProgress?.chapters || [];
 
   // 加载已写章节内容
   useEffect(() => {
@@ -64,12 +50,12 @@ export function DraftWriting() {
       const { system, user } = buildWritingPrompt({
         chapterNum: selectedChapter,
         sectionTitle: `第${selectedChapter}章`,
-        sectionContent: project.outline?.mainLine?.slice(0, 200) || "续写本章内容",
+        sectionContent: project?.outline?.mainLine?.slice(0, 200) || "续写本章内容",
         previousContent: content,
         context: content.slice(-1000),
         wordTarget: 900,
         mood: selectedInspiration?.mood || "爽",
-        characters: project.characters?.map((c) => ({
+        characters: project?.characters?.map((c) => ({
           name: c.name,
           keyTrait: c.keyTrait,
           coreDesire: c.coreDesire,
@@ -121,7 +107,7 @@ export function DraftWriting() {
       const { system, user } = buildCheckPrompt({
         content,
         chapterNum: selectedChapter,
-        characters: project.characters?.map((c) => ({
+        characters: project?.characters?.map((c) => ({
           name: c.name,
           coreDesire: c.coreDesire,
           coreFear: c.coreFear,
@@ -169,7 +155,7 @@ export function DraftWriting() {
     setWritingProgress({
       chapters: updated,
       totalWordCount: updated.reduce((sum, c) => sum + c.wordCount, 0),
-      polishCount: (project.writingProgress?.polishCount || 0) + 1,
+      polishCount: (project?.writingProgress?.polishCount || 0) + 1,
     });
   };
 
@@ -181,7 +167,7 @@ export function DraftWriting() {
     consistency: "text-orange-400",
   };
 
-  if (!project.outline) {
+  if (!project?.outline) {
     return (
       <div className="max-w-4xl">
         <div className="mb-6">

@@ -55,6 +55,8 @@ export function Inspiration() {
         config.llm, system, user
       )) {
         full += chunk;
+        // 实时保存中间结果，切换页面也不会丢
+        setRawInspirations(full);
       }
       setRawResult(full);
       setRawInspirations(full);

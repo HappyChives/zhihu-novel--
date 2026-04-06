@@ -10,19 +10,15 @@ export function WorldSetting() {
   const [error, setError] = useState<string | null>(null);
   const [displayResult, setDisplayResult] = useState("");
   const [result, setResult] = useState("");
-  const [saved, setSaved] = useState(!!project?.worldSetting);
+  const [saved, setSaved] = useState(false);
 
-  // 三个层次的可编辑状态
-  const [baseRule, setBaseRule] = useState(project?.worldSetting?.baseRule || "");
-  const [socialStructure, setSocialStructure] = useState(project?.worldSetting?.socialStructure || "");
-  const [civilization, setCivilization] = useState(project?.worldSetting?.civilization || "");
-  const [keyConflict, setKeyConflict] = useState(project?.worldSetting?.keyConflict || "");
+  // 三个层次的可编辑状态（必须在这里声明，useEffect 在下面引用）
+  const [baseRule, setBaseRule] = useState("");
+  const [socialStructure, setSocialStructure] = useState("");
+  const [civilization, setCivilization] = useState("");
+  const [keyConflict, setKeyConflict] = useState("");
 
-  const selectedInspiration = project?.inspirations.find(
-    (i) => i.id === project?.selectedInspirationId
-  );
-
-  // 挂载时同步 project 数据
+  // 挂载时恢复已有数据
   useEffect(() => {
     if (project?.worldSetting) {
       setBaseRule(project.worldSetting.baseRule);
@@ -32,6 +28,10 @@ export function WorldSetting() {
       setSaved(true);
     }
   }, [project?.id]);
+
+  const selectedInspiration = project?.inspirations?.find(
+    (i) => i.id === project?.selectedInspirationId
+  );
 
   const canGenerate = !!selectedInspiration;
 
@@ -62,7 +62,6 @@ export function WorldSetting() {
         setDisplayResult(full);
       }
       setResult(full);
-      // Auto-populate the text fields from result
       parseAndFill(full);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "未知错误");
@@ -72,13 +71,12 @@ export function WorldSetting() {
   };
 
   function parseAndFill(text: string) {
-    // 简单的字段提取
-    const baseMatch = text.match(/底座[^【\n]*【?[^#\n]*/i) || [];
-    const socialMatch = text.match(/社会结构[^【\n]*/i) || [];
-    const civMatch = text.match(/文明[^【\n]*/i) || [];
-    if (!baseRule && baseMatch[0]) setBaseRule(baseMatch[0].slice(0, 200));
-    if (!socialStructure && socialMatch[0]) setSocialStructure(socialMatch[0].slice(0, 200));
-    if (!civilization && civMatch[0]) setCivilization(civMatch[0].slice(0, 200));
+    const baseMatch = text.match(/底座[^【\n]*【?[^#\n]*/i);
+    const socialMatch = text.match(/社会结构[^【\n]*/i);
+    const civMatch = text.match(/文明[^【\n]*/i);
+    if (baseMatch?.[0]) setBaseRule(baseMatch[0].slice(0, 200));
+    if (socialMatch?.[0]) setSocialStructure(socialMatch[0].slice(0, 200));
+    if (civMatch?.[0]) setCivilization(civMatch[0].slice(0, 200));
   }
 
   const handleConfirm = () => {
@@ -125,7 +123,6 @@ export function WorldSetting() {
         </div>
       )}
 
-      {/* 三个层次编辑区 */}
       <div className="space-y-4 mb-4">
         <div className="card">
           <p className="section-title">底座（底层规则）</p>
@@ -164,7 +161,6 @@ export function WorldSetting() {
         </div>
       </div>
 
-      {/* AI 生成 */}
       {canGenerate && !saved && (
         <button
           className="btn-primary w-full mb-4"
@@ -184,7 +180,6 @@ export function WorldSetting() {
 
       {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
-      {/* 确认按钮 */}
       <button
         className="btn-primary w-full"
         onClick={handleConfirm}
@@ -192,12 +187,6 @@ export function WorldSetting() {
       >
         {saved ? "✓ 世界观已确认 ✓" : "确认世界观，进入故事大纲 →"}
       </button>
-
-      {saved && (
-        <p className="text-center text-gray-500 text-sm mt-2">
-          已保存。点击「确认世界观」按钮重新编辑。
-        </p>
-      )}
     </div>
   );
 }

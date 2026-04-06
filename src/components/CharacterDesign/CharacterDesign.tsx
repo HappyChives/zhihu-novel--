@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "../../lib/context";
 import { buildCharacterPrompt } from "../../prompts";
 import { MarkdownRenderer } from "../ui/MarkdownRenderer";
@@ -26,33 +26,25 @@ function emptyCharacter(): Character {
 export function CharacterDesign() {
   const { config, project, setCharacters } = useApp();
 
-  // Guard: no project loaded yet
-  if (!project) {
-    return (
-      <div className="max-w-4xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-1">人物设计</h2>
-        </div>
-        <div className="card border-yellow-500/30 bg-yellow-500/5">
-          <p className="text-yellow-400 text-center">加载中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const [characters, setLocalCharacters] = useState<Character[]>(
-    project.characters?.length ? project.characters : []
-  );
+  const [characters, setLocalCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [displayResult, setDisplayResult] = useState("");
-  const [saved, setSaved] = useState(!!project.characters?.length);
+  const [saved, setSaved] = useState(false);
 
-  const selectedInspiration = project.inspirations.find(
-    (i) => i.id === project.selectedInspirationId
+  // 挂载时恢复已有数据
+  useEffect(() => {
+    if (project?.characters?.length) {
+      setLocalCharacters(project.characters);
+      setSaved(true);
+    }
+  }, [project?.id]);
+
+  const selectedInspiration = project?.inspirations?.find(
+    (i) => i.id === project?.selectedInspirationId
   );
 
-  const canGenerate = !!(selectedInspiration && project.worldSetting);
+  const canGenerate = !!(selectedInspiration && project?.worldSetting);
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
@@ -65,7 +57,7 @@ export function CharacterDesign() {
         mood: selectedInspiration.mood,
       },
       worldSetting: project.worldSetting,
-      outline: project.outline?.mainLine,
+      outline: project?.outline?.mainLine,
     });
 
     setDisplayResult("");
@@ -79,10 +71,13 @@ export function CharacterDesign() {
       )) {
         full += chunk;
         setDisplayResult(full);
+        // 实时保存中间解析结果
+        const chars = parseCharacters(full);
+        setLocalCharacters(chars);
+        if (chars.length > 0) {
+          setCharacters(chars);
+        }
       }
-      // Parse characters from text - simple approach: create default characters from result
-      const chars = parseCharacters(full);
-      setLocalCharacters(chars);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "未知错误");
     } finally {
@@ -143,7 +138,7 @@ export function CharacterDesign() {
     setSaved(true);
   };
 
-  if (!selectedInspiration || !project.worldSetting) {
+  if (!selectedInspiration || !project?.worldSetting) {
     return (
       <div className="max-w-4xl">
         <div className="mb-6">
