@@ -4,13 +4,11 @@ import { testLLMConnection, PROVIDER_META } from "../../lib/llm";
 import type { Provider } from "../../lib/types";
 
 const PROVIDER_LIST: Provider[] = [
-  "ollama", "lmstudio", "localai",
   "openai", "anthropic", "google",
   "zhipu", "deepseek", "moonshot", "minimax", "baidu", "alibaba", "siliconflow", "custom",
 ];
 
 const PROVIDER_SECTIONS = [
-  { title: "本地模型", items: ["ollama", "lmstudio", "localai"] },
   { title: "国际 API", items: ["openai", "anthropic", "google"] },
   { title: "国内 API", items: ["zhipu", "deepseek", "moonshot", "minimax", "baidu", "alibaba", "siliconflow"] },
   { title: "自定义", items: ["custom"] },
@@ -30,7 +28,7 @@ const API_KEY_HINTS: Partial<Record<Provider, string>> = {
 };
 
 export function Settings() {
-  const { config, updateLLMConfig, updateLicense } = useApp();
+  const { config, updateLLMConfig } = useApp();
   const [provider, setProvider] = useState<Provider>(config.llm.provider);
   const [baseUrl, setBaseUrl] = useState(
     config.llm.baseUrl || PROVIDER_META[config.llm.provider]?.defaultBaseUrl || ""
@@ -39,7 +37,6 @@ export function Settings() {
     config.llm.model || PROVIDER_META[config.llm.provider]?.defaultModel || ""
   );
   const [apiKey, setApiKey] = useState(config.llm.apiKey || "");
-  const [licenseKey, setLicenseKey] = useState(config.licenseKey);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "fail">("idle");
   const [testMsg, setTestMsg] = useState("");
 
@@ -68,10 +65,6 @@ export function Settings() {
     }
   };
 
-  const handleSaveLicense = () => {
-    updateLicense(licenseKey);
-  };
-
   const meta = PROVIDER_META[provider];
   const needsApiKey = meta?.authIn !== "none";
 
@@ -79,7 +72,7 @@ export function Settings() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white mb-1">⚙️ 设置</h2>
-        <p className="text-gray-400 text-sm">配置 LLM 模型连接和 License 激活</p>
+        <p className="text-gray-400 text-sm">配置 LLM 模型连接</p>
       </div>
 
       {/* LLM 配置 */}
@@ -152,7 +145,7 @@ export function Settings() {
         {needsApiKey && (
           <div className="mb-4">
             <p className="text-xs text-gray-500 mb-1">
-              API Key {provider === "ollama" || provider === "lmstudio" || provider === "localai" ? "（可选，留空则不认证）" : "（必填）"}
+              API Key（必填）
             </p>
             <input
               type="password"
@@ -193,33 +186,6 @@ export function Settings() {
           >
             {testMsg}
           </p>
-        )}
-      </div>
-
-      {/* License */}
-      <div className="card mb-4">
-        <h3 className="font-semibold text-white mb-4">🔑 License 激活</h3>
-        {config.licenseValid ? (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
-            <p className="text-green-400 text-lg mb-1">✅ License 已激活</p>
-            <p className="text-gray-400 text-sm">所有功能已解锁，感谢支持！</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">License Key</p>
-              <input
-                className="input-field"
-                placeholder="XXXX-XXXX-XXXX"
-                value={licenseKey}
-                onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
-              />
-              <p className="text-xs text-gray-600 mt-1">格式：XXXX-XXXX-XXXX（共12位）</p>
-            </div>
-            <button className="btn-primary w-full" onClick={handleSaveLicense}>
-              激活 License
-            </button>
-          </div>
         )}
       </div>
 

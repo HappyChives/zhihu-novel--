@@ -15,7 +15,7 @@ const POLISH_INTENTS: { value: PolishIntent; label: string }[] = [
 ];
 
 export function WritingAssist() {
-  const { config } = useApp();
+  const { config, isApiConfigured } = useApp();
   const { call } = useLLM();
 
   // 续写模式
@@ -35,7 +35,7 @@ export function WritingAssist() {
   const [mode, setMode] = useState<"writing" | "polish">("writing");
 
   // License 拦截
-  if (!config.licenseValid) {
+  if (!isApiConfigured) {
     return (
       <div className="max-w-4xl">
         <div className="mb-6">

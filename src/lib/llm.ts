@@ -19,30 +19,6 @@ export interface ProviderMeta {
 }
 
 export const PROVIDER_META: Record<Provider, ProviderMeta> = {
-  ollama: {
-    label: "Ollama",
-    labelZh: "Ollama（本地）",
-    defaultBaseUrl: "http://localhost:11434",
-    defaultModel: "qwen2.5",
-    authIn: "none",
-    streamFormat: "sse",
-  },
-  lmstudio: {
-    label: "LM Studio",
-    labelZh: "LM Studio（本地）",
-    defaultBaseUrl: "http://localhost:1234/v1",
-    defaultModel: "qwen2.5",
-    authIn: "none",
-    streamFormat: "sse",
-  },
-  localai: {
-    label: "LocalAI",
-    labelZh: "LocalAI（本地）",
-    defaultBaseUrl: "http://localhost:8080/v1",
-    defaultModel: "qwen2.5",
-    authIn: "none",
-    streamFormat: "sse",
-  },
   openai: {
     label: "OpenAI",
     labelZh: "OpenAI",
@@ -210,8 +186,6 @@ function buildBody(
 
 function getEndpoint(cfg: LLMConfig): string {
   switch (cfg.provider) {
-    case "ollama":
-      return "/api/generate";
     case "anthropic":
       return "/messages";
     case "google":
@@ -411,14 +385,6 @@ export async function testLLMConnection(cfg: LLMConfig): Promise<string> {
   const headers = buildHeaders(cfg);
 
   try {
-    if (cfg.provider === "ollama") {
-      const r = await fetch(`${base}/api/tags`, { method: "GET", headers });
-      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-      const json = await r.json() as { models?: Array<{ name: string }> };
-      const models = json.models?.map((m) => m.name).join(", ") ?? "未知";
-      return `连接成功！可用模型: ${models}`;
-    }
-
     if (cfg.provider === "google") {
       const r = await fetch(`${base}/models?key=${encodeURIComponent(cfg.apiKey)}`, {
         method: "GET",

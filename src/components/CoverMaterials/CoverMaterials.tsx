@@ -4,7 +4,7 @@ import { useApp } from "../../lib/context";
 import { buildCoverPrompt } from "../../prompts";
 
 export function CoverMaterials() {
-  const { config } = useApp();
+  const { config, isApiConfigured } = useApp();
   const { call } = useLLM();
 
   const [topic, setTopic] = useState("");
@@ -15,7 +15,7 @@ export function CoverMaterials() {
   const [result, setResult] = useState("");
   const [displayResult, setDisplayResult] = useState("");
 
-  if (!config.licenseValid) {
+  if (!isApiConfigured) {
     return (
       <div className="max-w-4xl">
         <div className="mb-6">
