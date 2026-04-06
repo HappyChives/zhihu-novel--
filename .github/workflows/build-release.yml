@@ -1,0 +1,75 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            args: ""
+            target: deb
+          - platform: ubuntu-22.04
+            args: ""
+            target: rpm
+          - platform: windows-latest
+            args: ""
+            target: msi
+          - platform: macos-14
+            args: ""
+            target: dmg
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux deps
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev libayatana-appindicator3-dev
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: "StoryForge v__VERSION__"
+          releaseBody: |
+            ## StoryForge 故事工坊
+
+            知乎盐选创作者一站式 AI 写作工具
+
+            ### 安装方式
+            - **Ubuntu/Debian**: 下载 `.deb` 文件，双击安装
+            - **Fedora/RHEL**: 下载 `.rpm` 文件，双击安装
+            - **macOS**: 下载 `.dmg` 文件，挂载并拖入 Applications
+            - **Windows**: 下载 `.msi` 或 `.exe` 安装程序
+          releaseDraft: true
+          prerelease: false
