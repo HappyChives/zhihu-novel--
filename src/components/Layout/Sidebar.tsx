@@ -38,20 +38,18 @@ function stageIndex(s: WorkflowStage): number {
   return STAGE_ORDER.indexOf(s);
 }
 
-type StageStatus = "locked" | "current" | "completed";
+type StageStatus = "current" | "completed";
 
 function getStageStatus(stage: WorkflowStage, currentStage: WorkflowStage | undefined): StageStatus {
-  // 默认从第一个阶段开始，全部解锁
+  // 全部阶段始终可点击，无锁定
   const effectiveStage = currentStage ?? "hotspot";
   const currentIdx = stageIndex(effectiveStage);
   const stageIdx = stageIndex(stage);
   if (stageIdx < currentIdx) return "completed";
-  if (stageIdx === currentIdx) return "current";
-  return "locked";
+  return "current";
 }
 
 const STATUS_ICON: Record<StageStatus, string> = {
-  locked: "🔒",
   current: "🟡",
   completed: "✅",
 };
@@ -82,19 +80,6 @@ export function Sidebar() {
             const icon = STATUS_ICON[status];
             const label = STAGE_LABELS[stage];
             const path = STAGE_PATHS[stage];
-
-            if (status === "locked") {
-              return (
-                <div
-                  key={stage}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-600 cursor-not-allowed select-none"
-                  title={`请先完成「${STAGE_LABELS[STAGE_ORDER[stageIndex(stage) - 1]]}」`}
-                >
-                  <span className="text-base">{icon}</span>
-                  <span>{label}</span>
-                </div>
-              );
-            }
 
             return (
               <NavLink
