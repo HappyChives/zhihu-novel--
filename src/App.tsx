@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout/Layout";
-import { HotspotSurvey } from "./components/HotspotSurvey/HotspotSurvey";
+import { HotspotAnalysis } from "./components/HotspotAnalysis/HotspotAnalysis";
 import { Inspiration } from "./components/Inspiration/Inspiration";
-import { TopicSelect } from "./components/TopicSelect/TopicSelect";
+import { WorldSetting } from "./components/WorldSetting/WorldSetting";
 import { OutlineGen } from "./components/OutlineGen/OutlineGen";
-import { WritingAssist } from "./components/WritingAssist/WritingAssist";
+import { CharacterDesign } from "./components/CharacterDesign/CharacterDesign";
+import { ChapterOutline } from "./components/ChapterOutline/ChapterOutline";
+import { DraftWriting } from "./components/DraftWriting/DraftWriting";
 import { CoverMaterials } from "./components/CoverMaterials/CoverMaterials";
 import { Settings } from "./components/Settings/Settings";
 import { AppProvider } from "./lib/context";
@@ -16,11 +18,13 @@ export default function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Navigate to="/hotspot" replace />} />
-            <Route path="/hotspot" element={<HotspotSurvey />} />
+            <Route path="/hotspot" element={<HotspotAnalysis />} />
             <Route path="/inspiration" element={<Inspiration />} />
-            <Route path="/topic" element={<TopicSelect />} />
+            <Route path="/world" element={<WorldSetting />} />
             <Route path="/outline" element={<OutlineGen />} />
-            <Route path="/writing" element={<WritingAssist />} />
+            <Route path="/character" element={<CharacterDesign />} />
+            <Route path="/chapter-outline" element={<ChapterOutline />} />
+            <Route path="/writing" element={<DraftWriting />} />
             <Route path="/cover" element={<CoverMaterials />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>

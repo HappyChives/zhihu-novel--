@@ -1,57 +1,157 @@
 import { NavLink } from "react-router-dom";
+import { useApp } from "../../lib/context";
+import type { WorkflowStage } from "../../lib/types";
 
-interface NavItem {
-  path: string;
-  label: string;
-  icon: string;
-  free?: boolean;
-}
-
-const navItems: NavItem[] = [
-  { path: "/hotspot", label: "市场热点", icon: "📊", free: true },
-  { path: "/inspiration", label: "灵感生成", icon: "💡", free: true },
-  { path: "/topic", label: "选题确定", icon: "✍️", free: true },
-  { path: "/outline", label: "大纲生成", icon: "🗺️", free: true },
-  { path: "/writing", label: "AI 续写", icon: "⚡", free: false },
-  { path: "/cover", label: "封面物料", icon: "🎨", free: false },
-  { path: "/settings", label: "设置", icon: "⚙️" },
+const STAGE_ORDER: WorkflowStage[] = [
+  "hotspot",
+  "inspiration",
+  "worldSetting",
+  "outline",
+  "character",
+  "chapterOutline",
+  "writing",
 ];
 
+const STAGE_LABELS: Record<WorkflowStage, string> = {
+  hotspot: "市场热点",
+  inspiration: "灵感生成",
+  worldSetting: "世界观设定",
+  outline: "故事大纲",
+  character: "人物设计",
+  chapterOutline: "章节细纲",
+  writing: "正文创作",
+  cover: "封面物料",
+};
+
+const STAGE_PATHS: Record<WorkflowStage, string> = {
+  hotspot: "/hotspot",
+  inspiration: "/inspiration",
+  worldSetting: "/world",
+  outline: "/outline",
+  character: "/character",
+  chapterOutline: "/chapter-outline",
+  writing: "/writing",
+  cover: "/cover",
+};
+
+function stageIndex(s: WorkflowStage): number {
+  return STAGE_ORDER.indexOf(s);
+}
+
+type StageStatus = "locked" | "current" | "completed";
+
+function getStageStatus(stage: WorkflowStage, currentStage: WorkflowStage | undefined): StageStatus {
+  if (!currentStage) return "locked";
+  const currentIdx = stageIndex(currentStage);
+  const stageIdx = stageIndex(stage);
+  if (stageIdx < currentIdx) return "completed";
+  if (stageIdx === currentIdx) return "current";
+  return "locked";
+}
+
+const STATUS_ICON: Record<StageStatus, string> = {
+  locked: "🔒",
+  current: "🟡",
+  completed: "✅",
+};
+
 export function Sidebar() {
+  const { project } = useApp();
+  const currentStage = project?.stage;
+  const projectName = project?.name || "新项目";
+
   return (
     <aside className="w-56 bg-dark-surface border-r border-dark-border flex flex-col">
-      {/* Logo */}
+      {/* Logo / Project info */}
       <div className="px-5 py-5 border-b border-dark-border">
         <h1 className="text-xl font-bold text-white">
-          <span className="text-primary-400">Story</span>Forge
+          <span className="text-primary-400">故事</span>工坊
         </h1>
-        <p className="text-xs text-gray-500 mt-0.5">故事工坊 · 盐选创作者</p>
+        <p className="text-xs text-gray-500 mt-0.5 truncate" title={projectName}>
+          {projectName}
+        </p>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 py-3 px-3 space-y-0.5">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive
-                  ? "bg-primary-600/20 text-primary-300 font-medium"
-                  : "text-gray-400 hover:text-gray-200 hover:bg-dark-card"
-              }`
+      {/* Workflow stages */}
+      <div className="px-3 py-4">
+        <p className="section-title mb-2">工作流阶段</p>
+        <div className="space-y-0.5">
+          {STAGE_ORDER.map((stage) => {
+            const status = getStageStatus(stage, currentStage);
+            const icon = STATUS_ICON[status];
+            const label = STAGE_LABELS[stage];
+            const path = STAGE_PATHS[stage];
+
+            if (status === "locked") {
+              return (
+                <div
+                  key={stage}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-600 cursor-not-allowed select-none"
+                  title={`请先完成「${STAGE_LABELS[STAGE_ORDER[stageIndex(stage) - 1]]}」`}
+                >
+                  <span className="text-base">{icon}</span>
+                  <span>{label}</span>
+                </div>
+              );
             }
-          >
-            <span>{item.icon}</span>
-            <span>{item.label}</span>
-            {item.free === false && (
-              <span className="ml-auto text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded">
-                付费
-              </span>
-            )}
-          </NavLink>
-        ))}
-      </nav>
+
+            return (
+              <NavLink
+                key={stage}
+                to={path}
+                className={({ isActive }) =>
+                  `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive
+                      ? "bg-primary-600/20 text-primary-300 font-medium"
+                      : "text-gray-300 hover:text-white hover:bg-dark-card"
+                  }`
+                }
+              >
+                <span className="text-base">{icon}</span>
+                <span>{label}</span>
+              </NavLink>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Other nav */}
+      <div className="px-3 pb-4">
+        <p className="section-title mb-2">其他</p>
+        <NavLink
+          to="/cover"
+          className={({ isActive }) =>
+            `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+              isActive
+                ? "bg-primary-600/20 text-primary-300 font-medium"
+                : "text-gray-400 hover:text-gray-200 hover:bg-dark-card"
+            }`
+          }
+        >
+          <span className="text-base">🎨</span>
+          <span>封面物料</span>
+        </NavLink>
+      </div>
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Bottom: Settings */}
+      <div className="px-3 pb-3">
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+              isActive
+                ? "bg-primary-600/20 text-primary-300 font-medium"
+                : "text-gray-400 hover:text-gray-200 hover:bg-dark-card"
+            }`
+          }
+        >
+          <span className="text-base">⚙️</span>
+          <span>设置</span>
+        </NavLink>
+      </div>
 
       {/* Footer */}
       <div className="px-5 py-4 border-t border-dark-border">
