@@ -117,6 +117,7 @@ export interface Project {
   stage: WorkflowStage;
   hotspotData?: string;
   inspirations: InspirationItem[];
+  rawInspirations?: string;     // AI 生成的原始灵感文本（用于展示）
   selectedInspirationId?: string;
   worldSetting?: WorldSetting;
   outline?: OutlineData;

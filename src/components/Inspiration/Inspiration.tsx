@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "../../lib/context";
 import { buildInspirationPrompt } from "../../prompts";
 import { InspirationCard } from "../ui/InspirationCard";
@@ -8,18 +8,33 @@ const MOOD_OPTIONS = ["虐", "甜", "爽", "悬疑", "搞笑", "治愈"];
 const GENRE_OPTIONS = ["现代言情", "古代言情", "悬疑推理", "都市职场", "校园", "玄幻奇幻", "不限"];
 
 export function Inspiration() {
-  const { config, project, setInspirations, selectInspiration } = useApp();
+  const { config, project, setInspirations, setRawInspirations, selectInspiration } = useApp();
 
   const [genre, setGenre] = useState(project?.hotspotData ? "" : "不限");
   const [mood, setMood] = useState("爽");
   const [protagonistPrefs, setProtagonistPrefs] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [inspirations, setLocalInspirations] = useState<InspirationItem[]>([]);
+  const [inspirations, setLocalInspirations] = useState<InspirationItem[]>(
+    project?.inspirations || []
+  );
   const [selectedId, setSelectedId] = useState<string | undefined>(
     project?.selectedInspirationId
   );
-  const [rawResult, setRawResult] = useState("");
+  const [rawResult, setRawResult] = useState(project?.rawInspirations || "");
+
+  // 组件挂载时同步 project 中的数据（切换页面后恢复）
+  useEffect(() => {
+    if (project?.inspirations?.length) {
+      setLocalInspirations(project.inspirations);
+    }
+    if (project?.selectedInspirationId) {
+      setSelectedId(project.selectedInspirationId);
+    }
+    if (project?.rawInspirations) {
+      setRawResult(project.rawInspirations);
+    }
+  }, [project?.id]);
 
   const handleGenerate = async () => {
     const { system, user } = buildInspirationPrompt({
@@ -42,6 +57,7 @@ export function Inspiration() {
         full += chunk;
       }
       setRawResult(full);
+      setRawInspirations(full);
 
       // Parse inspirations from result (simple markdown list parsing)
       const parsed = parseInspirations(full);
@@ -180,6 +196,7 @@ export function Inspiration() {
             <InspirationCard
               key={item.id}
               item={item}
+              rawText={rawResult}
               isSelected={item.id === selectedId}
               onSelect={handleSelect}
             />

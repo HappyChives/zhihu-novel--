@@ -49,6 +49,7 @@ interface AppContextType {
   goToStage: (s: WorkflowStage) => void;
   setHotspotData: (data: string) => void;
   setInspirations: (items: InspirationItem[]) => void;
+  setRawInspirations: (raw: string) => void;
   selectInspiration: (id: string) => void;
   setWorldSetting: (ws: WorldSetting) => void;
   setOutline: (o: OutlineData) => void;
@@ -170,6 +171,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, [saveProject]);
 
+  const setRawInspirations = useCallback((raw: string) => {
+    setProject((prev) => {
+      const current = ensureProject(prev);
+      const updated = { ...current, rawInspirations: raw };
+      saveProject(updated);
+      return updated;
+    });
+  }, [saveProject]);
+
   const selectInspiration = useCallback((id: string) => {
     setProject((prev) => {
       const current = ensureProject(prev);
@@ -256,6 +266,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         goToStage,
         setHotspotData,
         setInspirations,
+        setRawInspirations,
         selectInspiration,
         setWorldSetting,
         setOutline,

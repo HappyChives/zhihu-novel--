@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "../../lib/context";
 import { buildWorldSettingPrompt } from "../../prompts";
 import { MarkdownRenderer } from "../ui/MarkdownRenderer";
@@ -21,6 +21,17 @@ export function WorldSetting() {
   const selectedInspiration = project?.inspirations.find(
     (i) => i.id === project?.selectedInspirationId
   );
+
+  // 挂载时同步 project 数据
+  useEffect(() => {
+    if (project?.worldSetting) {
+      setBaseRule(project.worldSetting.baseRule);
+      setSocialStructure(project.worldSetting.socialStructure);
+      setCivilization(project.worldSetting.civilization);
+      setKeyConflict(project.worldSetting.keyConflict);
+      setSaved(true);
+    }
+  }, [project?.id]);
 
   const canGenerate = !!selectedInspiration;
 
